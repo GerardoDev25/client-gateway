@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -9,11 +8,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError } from 'rxjs';
 import { PaginationDto } from 'src/commons';
 import { PRODUCT_SERVICES } from 'src/config';
-import { Product } from './entities';
 
 @Controller('products')
 export class ProductsController {
@@ -35,15 +33,23 @@ export class ProductsController {
   }
 
   @Get(':id')
-  async findOneProduct(@Param('id') id: string) {
-    try {
-      const product: Product = await firstValueFrom(
-        this.productsClient.send({ cmd: 'find_one_product' }, { id }),
-      );
-      return product;
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
+  findOneProduct(@Param('id') id: string) {
+    return this.productsClient.send({ cmd: 'find_one_product' }, { id }).pipe(
+      catchError((err) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        throw new RpcException(err);
+      }),
+    );
+
+    // try {
+    //   const product: Product = await firstValueFrom(
+    //     this.productsClient.send({ cmd: 'find_one_product' }, { id }),
+    //   );
+    //   return product;
+    // } catch (error) {
+    //   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    //   throw new RpcException(error);
+    // }
   }
 
   @Patch(':id')
