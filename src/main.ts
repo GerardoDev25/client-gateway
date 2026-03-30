@@ -22,7 +22,7 @@ async function bootstrap() {
 
   await app.listen(envs.port);
 
-  console.log('hello world - more change');
+  console.log('hello world - another more change');
 
   logger.log(`Gateway running on port ${envs.port}`);
 }
